@@ -17,7 +17,8 @@ bot:
         error: An error as occured                                              # message to send if the bot has an error
 
     channels:   # the format is channel: channel_id
-        results: 1357772378653986947
+        results: 1357772378653986947        # post results
+        enterWaitlist: 1357841251734393033  # where users join a channel for a queue
 
     roles:      # the format is role: role_id
         tester: 1357747672706187384

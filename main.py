@@ -1,13 +1,16 @@
-from nextcord.ext import commands
 import os
-from dotenv import load_dotenv
-import yaml
-import nextcord
-from src.utils import mojang, format
-from src.tierlistQueue import TierlistQueue
 import sys
 import logging
 import time
+
+import nextcord
+from nextcord.ext import commands
+from dotenv import load_dotenv
+import yaml
+
+from src.utils import mojang, format
+from src.tierlistQueue import TierlistQueue
+from src.ui.waitlistButton import WaitlistButton
 
 try:
     os.makedirs("logs", exist_ok=True)
@@ -38,7 +41,6 @@ try:
     listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
     listRegionsText: list[str] = [str(config["bot"]["regions"][region]["ticket_catagory"]) for region in config["bot"]["regions"]]
 
-    channelResults: int = config["bot"]["channels"]["results"]
     testerRole: int = config["bot"]["roles"]["tester"]
 
     messages = config["bot"]["messages"]
@@ -48,6 +50,8 @@ try:
     maxQueue = config["bot"]["options"]["queueLimit"]
     maxTester = config["bot"]["options"]["testerLimit"]
     cooldown = config["bot"]["options"]["cooldown"]
+
+    channels = config["bot"]["channels"]
 except Exception as e:
     logging.exception(f"Setting up config failed:")
     sys.exit("Error: Failed to setup config")
@@ -56,15 +60,26 @@ except Exception as e:
 try:
     queue = TierlistQueue(maxQueue=maxQueue, maxTesters=maxTester, cooldown=cooldown)
     queue.setup(listRegions)
-    queue.adduser("EU", 2)
-    print(queue.getqueueraw())
+
 except Exception as e:
     logging.exception(f"Setting up queue failed:")
     sys.exit("Error: Failed to setup queue")
 
+def is_me(m):
+    return m.author == bot.user
+
+async def setupBot():
+    await bot.get_channel(channels["enterWaitlist"]).purge(limit=10, check=is_me)   # deletes previous messages
+    await bot.get_channel(channels["enterWaitlist"]).send(embed=nextcord.Embed.from_dict(format.enterwaitlistmessage), view=WaitlistButton())
+    
 @bot.event
 async def on_ready():
     print(f"Tier Testing bot has logged online ✅")
+    try:
+        await setupBot()
+    except Exception as e:
+        logging.exception("Failed bot startup sequence: ")
+        sys.exit("Failed startup sequence")
 
 @bot.slash_command(name="results", description="closes a ticket and gives a tier to a user") #TODO add database and ticket close
 async def results(
@@ -102,7 +117,7 @@ async def results(
         result_embed_data = format.formatresult(discordUsername=user.name, testerID=interaction.user.id, region=region, minecraftUsername=username, oldTier=oldtier, newTier=newtier, uuid=uuid) # such bad practice <3
         embed = nextcord.Embed.from_dict(result_embed_data)
         
-        await bot.get_channel(channelResults).send(content=f"<@{user.id}>" ,embed=embed)
+        await bot.get_channel(channels["results"]).send(content=f"<@{user.id}>" ,embed=embed)
         await interaction.response.send_message(content=messages["resultMessageSent"], ephemeral=True)
     except Exception as e:
         logging.exception("Error in /results command:")

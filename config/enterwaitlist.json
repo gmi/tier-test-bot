@@ -1,0 +1,18 @@
+{
+    "title": "Evaluation Testing Waitlist",
+    "color": 16711680,
+    "fields": [
+        {
+          "name": " ",
+          "value": "Upon applying, you will be added to a waitlist channel. You will be pinged when a tester is available. If you are HT3 or higher, a high test ticket will be created."
+        },
+        {
+            "name": " ",
+            "value": "- **Region** should be the region of the server you wish to test on.\n- **Username** should be the name of the account you will be testing on."
+        },
+        {
+            "name": " ",
+            "value": " **Failure to provide authentic information will result in a denied test.**"
+        }
+    ]
+}

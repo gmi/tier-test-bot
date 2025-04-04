@@ -1,0 +1,14 @@
+{
+    "title": "No Testers Online",
+    "color": 16711680,
+    "fields": [
+        {
+          "name": " ",
+          "value": "No testers for your region are avaliable at this time.\nYou will bepinged when a tester is valable.\nCheck back later!"
+        },
+        {
+            "name": " ",
+            "value": "Last Test At {{TIMESTAMP}}"
+        }
+    ]
+}

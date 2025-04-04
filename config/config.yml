@@ -1,8 +1,20 @@
-# bot requires a reset after updating config
+# yaml used instead of json due to ease and ability to comment <3
+
+# bot requires a restart after updating config
+# bot messages can be updated in the json files in this directory
+# if some parts are missing, the bot will not work
 
 bot:
     options:
         cooldown: 1440  # enter time in minutes (will only work if database is sqlite or mysql)
+        queueLimit: 20  # max players in queue
+        testerLimit: 5  # max number of testers per region
+
+    messages:           # messages to send
+        noPermission: You do not have the permission to use this command.       # message to send if a user doesnt have permission to execute a command
+        notTicketCatagory: Command can only be ran inside of testing channels   # message to send if a user tries running /result in a non ticket catagory
+        resultMessageSent: Result message sent!                                 # message to send as an ephemeral after a user sucessfully runs /results
+        error: An error as occured                                              # message to send if the bot has an error
 
     channels:   # the format is channel: channel_id
         results: 1357772378653986947
@@ -16,16 +28,17 @@ bot:
 
     regions:    
         EU: 
-            queue_channel: 1357801394110730320
-            ticket_catagory: 1357801305669636178
+            queue_channel: 1357801394110730320      # channel for queue to be posted in
+            ticket_catagory: 1357801305669636178    # catagory for tests to go in
+            role_ping: 2    # role to ping when queue is open
         NA:    
             queue_channel: 1357801413274505296
             ticket_catagory: 1357801320773324981
+            role_ping: 2
 
 database:
-    # options are "none", "mysql", "sqlite", only use mysql if you know what you are doing
-    # highly recoomended to use sqlite or mysql if you want to take your server to the next level
-    type: none 
+    # options are "mysql", "sqlite", only use mysql if you know what you are doing
+    type: sqlite 
 
     sqlite:
         filename: database.db

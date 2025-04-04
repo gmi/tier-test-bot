@@ -1,27 +1,66 @@
 from nextcord.ext import commands
 import os
-import json
 from dotenv import load_dotenv
 import yaml
 import nextcord
-from src.utils import mojang
+from src.utils import mojang, format
+from src.tierlistQueue import TierlistQueue
+import sys
+import logging
+import time
+
+try:
+    os.makedirs("logs", exist_ok=True)
+except Exception as e:
+    print(f"Uanble to create logs directory: ", e)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s:%(levelname)s:%(name)s: %(message)s",
+        handlers=[
+        logging.FileHandler(f"logs/logs-{time.time()}.log")  # This logs to a file
+    ]
+)
 
 load_dotenv()
-
-with open("config/config.yml", "r") as file:
-    config = yaml.safe_load(file)
-
-with open("config/resultmessage.json", "r") as file:
-    resultmessage = json.load(file)  # Load JSON properly
 
 intents = nextcord.Intents.all()
 bot = commands.Bot(intents=intents)
 
-tiers: list[str] = [key for key in config["bot"]["tiers"]]; tiers.append("none")
-regions: list[str] = [key for key in config["bot"]["regions"]]
-databaseEnabled: bool = config["database"]["type"] != "none"
-resultschannel: int = config["bot"]["channels"]["results"]
+try:
+    with open("config/config.yml", "r") as file:
+        config = yaml.safe_load(file)
+except Exception as e:
+    logging.exception("Failed to load configuration file:")
+    sys.exit("Error: Unable to load config file.")
 
+try:
+    listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
+    listRegionsText: list[str] = [str(config["bot"]["regions"][region]["ticket_catagory"]) for region in config["bot"]["regions"]]
+
+    channelResults: int = config["bot"]["channels"]["results"]
+    testerRole: int = config["bot"]["roles"]["tester"]
+
+    messages = config["bot"]["messages"]
+
+    listRegions = config["bot"]["regions"]
+
+    maxQueue = config["bot"]["options"]["queueLimit"]
+    maxTester = config["bot"]["options"]["testerLimit"]
+    cooldown = config["bot"]["options"]["cooldown"]
+except Exception as e:
+    logging.exception(f"Setting up config failed:")
+    sys.exit("Error: Failed to setup config")
+
+
+try:
+    queue = TierlistQueue(maxQueue=maxQueue, maxTesters=maxTester, cooldown=cooldown)
+    queue.setup(listRegions)
+    queue.adduser("EU", 2)
+    print(queue.getqueueraw())
+except Exception as e:
+    logging.exception(f"Setting up queue failed:")
+    sys.exit("Error: Failed to setup queue")
 
 @bot.event
 async def on_ready():
@@ -41,39 +80,33 @@ async def results(
     newtier: str = nextcord.SlashOption(
         description="Enter their new tier",
         required=True,
-        choices=tiers
+        choices=listTiers
     ),
     oldtier: str = nextcord.SlashOption(
         description="Enter their old tier",
         required=True,
-        choices=tiers
+        choices=listTiers
     ),
     region: str = nextcord.SlashOption(
         description="Enter their region",
         required=True,
-        choices=regions
+        choices=listRegionsText
     )
     ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
+        if interaction.channel.category.id not in listRegions: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
 
-    uuid = await mojang.getuserid(username=username)
-    # Replace placeholders in resultmessage
-    formatted_message = json.dumps(resultmessage).replace("{{PLAYER}}", user.name)
-    formatted_message = formatted_message.replace("{{TESTER}}", f"<@{interaction.user.id}>")
-    formatted_message = formatted_message.replace("{{REGION}}", region)
-    formatted_message = formatted_message.replace("{{USERNAME}}", username)
-    formatted_message = formatted_message.replace("{{PREV_TIER}}", oldtier)
-    formatted_message = formatted_message.replace("{{NEW_TIER}}", newtier)
-    formatted_message = formatted_message.replace("{{THUMBNAIL_URL}}", f"https://render.crafty.gg/3d/bust/{uuid}")
-    # Convert back to dictionary
-    result_embed_data = json.loads(formatted_message)
-    
-    # Create embed
-    embed = nextcord.Embed.from_dict(result_embed_data)
-    
-    await bot.get_channel(resultschannel).send(content=f"<@{user.id}>" ,embed=embed)
-    await interaction.response.send_message("Result message sent!", ephemeral=True)
+        uuid = await mojang.getuserid(username=username)
 
-
+        result_embed_data = format.formatresult(discordUsername=user.name, testerID=interaction.user.id, region=region, minecraftUsername=username, oldTier=oldtier, newTier=newtier, uuid=uuid) # such bad practice <3
+        embed = nextcord.Embed.from_dict(result_embed_data)
+        
+        await bot.get_channel(channelResults).send(content=f"<@{user.id}>" ,embed=embed)
+        await interaction.response.send_message(content=messages["resultMessageSent"], ephemeral=True)
+    except Exception as e:
+        logging.exception("Error in /results command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
 
 if __name__ == "__main__":
     bot.run(os.getenv("TOKEN"))

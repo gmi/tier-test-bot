@@ -8,4 +8,3 @@ async def getuserid(username: str) -> str:
                 return str(data.get("id"))
             else:
                 return "8667ba71b85a4004af54457a9734eed7"
-            

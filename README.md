@@ -1,7 +1,11 @@
 
 # tier-test bot
 
+<<<<<<< HEAD
 A discord bot for minecraft tierlists that can be self hosted (incomplete, dont try using it)
+=======
+A discord bot for minecraft tierlists that can be self hosted
+>>>>>>> origin/main
 
 
 ## Installation
@@ -12,6 +16,10 @@ A discord bot for minecraft tierlists that can be self hosted (incomplete, dont 
 
 ```
 git clone https://github.com/gmi/tier-test-bot.git
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
 ```
 ```
 cd .\tier-test-bot

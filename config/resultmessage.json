@@ -1,0 +1,37 @@
+{
+    "color": 16711680,
+    "author": {
+        "name": "{{PLAYER}}'s Test Results"
+      },
+    "fields": [
+      {
+        "name": "Tester:",
+        "value": "{{TESTER}}",
+        "inline": false
+      },
+      {
+        "name": "Region:",
+        "value": "{{REGION}}",
+        "inline": false
+      },
+      {
+        "name": "Minecraft IGN:",
+        "value": "{{USERNAME}}",
+        "inline": false
+      },
+      {
+        "name": "Previous Tier:",
+        "value": "{{PREV_TIER}}",
+        "inline": false
+      },
+      {
+        "name": "Tier Earned:",
+        "value": "{{NEW_TIER}}",
+        "inline": false
+      }
+    ],
+    "thumbnail": {
+        "url": "{{THUMBNAIL_URL}}"
+    }
+  }
+

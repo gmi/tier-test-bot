@@ -1,0 +1,38 @@
+# bot requires a reset after updating config
+
+bot:
+    options:
+        cooldown: 1440  # enter time in minutes (will only work if database is sqlite or mysql)
+
+    channels:   # the format is channel: channel_id
+        results: 1357772378653986947
+
+    roles:      # the format is role: role_id
+        tester: 1357747672706187384
+        
+    tiers:      # the format is tier: role_id
+        lt5: 1357746992226238514
+        ht4: 123
+
+    regions:    
+        EU: 
+            queue_channel: 1357801394110730320
+            ticket_catagory: 1357801305669636178
+        NA:    
+            queue_channel: 1357801413274505296
+            ticket_catagory: 1357801320773324981
+
+database:
+    # options are "none", "mysql", "sqlite", only use mysql if you know what you are doing
+    # highly recoomended to use sqlite or mysql if you want to take your server to the next level
+    type: none 
+
+    sqlite:
+        filename: database.db
+
+    mysql:      # only use this if you know what you are doing
+        host: localhost
+        port: 3306
+        user: root
+        password: root
+        database: tiers # must be created before starting bot

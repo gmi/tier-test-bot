@@ -1,9 +1,11 @@
+
 class TierlistQueue():
     def __init__(self, maxQueue: int, maxTesters: int, cooldown: int):
         self.queue = {}
         self.maxQueue = maxQueue
         self.maxTesters = maxTesters
         self.cooldown = cooldown
+
 
     def setup(self, regions: dict) -> None:
         for region_name, region_data in regions.items():

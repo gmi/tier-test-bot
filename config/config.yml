@@ -31,11 +31,11 @@ bot:
         EU: 
             queue_channel: 1357801394110730320      # channel for queue to be posted in
             ticket_catagory: 1357801305669636178    # catagory for tests to go in
-            role_ping: 2    # role to ping when queue is open
+            role_ping: 1358002082782908437    # role to ping when queue is open
         NA:    
             queue_channel: 1357801413274505296
             ticket_catagory: 1357801320773324981
-            role_ping: 2
+            role_ping: 1358002115146023062
 
 database:
     # options are "mysql", "sqlite", only use mysql if you know what you are doing

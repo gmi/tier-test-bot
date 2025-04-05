@@ -125,3 +125,6 @@ dmypy.json
 
 # discord bot logs
 logs/
+
+# tiers sqlite db
+storage/

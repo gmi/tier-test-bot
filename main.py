@@ -11,11 +11,15 @@ import yaml
 from src.utils import mojang, format
 from src.tierlistQueue import TierlistQueue
 from src.ui.waitlistButton import WaitlistButton
+from src.database import sqlite
+from src.utils.loadConfig import *
+
 
 try:
     os.makedirs("logs", exist_ok=True)
+    os.makedirs("storage", exist_ok=True)
 except Exception as e:
-    print(f"Uanble to create logs directory: ", e)
+    print(f"Uanble to create logs/storage directory: ", e)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,32 +34,6 @@ load_dotenv()
 intents = nextcord.Intents.all()
 bot = commands.Bot(intents=intents)
 
-try:
-    with open("config/config.yml", "r") as file:
-        config = yaml.safe_load(file)
-except Exception as e:
-    logging.exception("Failed to load configuration file:")
-    sys.exit("Error: Unable to load config file.")
-
-try:
-    listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
-    listRegionsText: list[str] = [str(config["bot"]["regions"][region]["ticket_catagory"]) for region in config["bot"]["regions"]]
-
-    testerRole: int = config["bot"]["roles"]["tester"]
-
-    messages = config["bot"]["messages"]
-
-    listRegions = config["bot"]["regions"]
-
-    maxQueue = config["bot"]["options"]["queueLimit"]
-    maxTester = config["bot"]["options"]["testerLimit"]
-    cooldown = config["bot"]["options"]["cooldown"]
-
-    channels = config["bot"]["channels"]
-except Exception as e:
-    logging.exception(f"Setting up config failed:")
-    sys.exit("Error: Failed to setup config")
-
 
 try:
     queue = TierlistQueue(maxQueue=maxQueue, maxTesters=maxTester, cooldown=cooldown)
@@ -69,7 +47,8 @@ def is_me(m):
     return m.author == bot.user
 
 async def setupBot():
-    await bot.get_channel(channels["enterWaitlist"]).purge(limit=10, check=is_me)   # deletes previous messages
+    await sqlite.createTables()
+    await bot.get_channel(channels["enterWaitlist"]).purge(limit=10, check=is_me)
     await bot.get_channel(channels["enterWaitlist"]).send(embed=nextcord.Embed.from_dict(format.enterwaitlistmessage), view=WaitlistButton())
     
 @bot.event

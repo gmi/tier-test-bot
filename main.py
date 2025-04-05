@@ -2,6 +2,8 @@ import os
 import sys
 import logging
 import time
+import datetime
+
 
 import nextcord
 from nextcord.ext import commands
@@ -11,6 +13,7 @@ import yaml
 from src.utils import mojang, format
 from src.tierlistQueue import TierlistQueue
 from src.ui.waitlistButton import WaitlistButton
+from src.ui.enterQueueButton import EnterQueueButton
 from src.database import sqlite
 from src.utils.loadConfig import *
 
@@ -50,6 +53,10 @@ async def setupBot():
     await sqlite.createTables()
     await bot.get_channel(channels["enterWaitlist"]).purge(limit=10, check=is_me)
     await bot.get_channel(channels["enterWaitlist"]).send(embed=nextcord.Embed.from_dict(format.enterwaitlistmessage), view=WaitlistButton())
+    for region in listRegions:
+        await bot.get_channel(listRegions[region]["queue_channel"]).purge(limit=10, check=is_me)
+        await bot.get_channel(listRegions[region]["queue_channel"]).send(embed=nextcord.Embed.from_dict(format.formatnoqueue(int(datetime.datetime.now().timestamp()))))
+    
     
 @bot.event
 async def on_ready():
@@ -101,6 +108,19 @@ async def results(
     except Exception as e:
         logging.exception("Error in /results command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="openqueue", description="opens a queue in a set region")
+async def openqueue(
+    interaction: nextcord.Interaction,
+    region: str = nextcord.SlashOption(
+        description="Enter region",
+        required=True,
+        choices=listRegionsText
+    )
+    ):
+    response = queue.addTester(region=region , userID=interaction.user.id)
+
+    await interaction.response.send_message(content=response, ephemeral=True)
 
 if __name__ == "__main__":
     bot.run(os.getenv("TOKEN"))

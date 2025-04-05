@@ -29,8 +29,8 @@ class WaitlistForm(ui.Modal):
 
     async def callback(self, interaction: nextcord.Interaction):
         uuid = await getuserid(self.ign.value)
-        if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message("Minecraft user does not exist", ephemeral=True); return
-        if self.region.value not in listRegions: await interaction.response.send_message("Region does not exist", ephemeral=True); return
+        if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message("Minecraft username does not exist", ephemeral=True); return
+        if self.region.value not in listRegions: await interaction.response.send_message("Selected Region does not exist", ephemeral=True); return
 
         await sqlite.addUser(discordID=interaction.user.id, minecraftUsername=self.ign.value, minecraftUUID=uuid, tier="NONE", lastTest=0, server=self.server.value)
 

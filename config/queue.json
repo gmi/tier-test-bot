@@ -1,0 +1,15 @@
+{
+    "title": "Tester(s) Available!",
+    "color": 16711680,
+    "description": ":jigsaw: The queue updates automatically.\nTo join the queue press Join. If you wish to leave the queue simply press Leave button.",
+    "fields": [
+      {
+        "name": "Queue ({{CAPACITY}})",
+        "value": "{{QUEUE}}"
+      },
+      {
+        "name": "Testers ({{TESTERCAPACITY}})",
+        "value": "{{TESTERS}}"
+      }
+    ]
+  }

@@ -11,7 +11,7 @@ except Exception as e:
 
 try:
     listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
-    listRegionsText: list[str] = [str(config["bot"]["regions"][region]["ticket_catagory"]) for region in config["bot"]["regions"]]
+    listRegionsText: list[str] = [key for key in config["bot"]["regions"]]
 
     testerRole: int = config["bot"]["roles"]["tester"]
 

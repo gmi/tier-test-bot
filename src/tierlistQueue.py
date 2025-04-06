@@ -76,7 +76,7 @@ class TierlistQueue():
             self.queue[region]["testers"].append(userID)
             return (f"{messages["testerOpenQueue"]}: <#{listRegions[region]["queue_channel"]}>", self.makeQueueMessage(region=region))
         
-    def removeTester(self, region: str, userID: str):
+    def removeTester(self, region: str, userID: str):   # ahh code right here
         if self.queue[region]["open"] == False: return "Testing is closed"
 
         if userID in self.queue[region]["testers"]:

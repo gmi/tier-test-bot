@@ -3,6 +3,7 @@ from nextcord import ui
 from src.database import sqlite
 from src.utils.mojang import getuserid
 from src.utils.loadConfig import listRegions
+from src.utils.loadConfig import messages
 
 class WaitlistButton(ui.View):
     def __init__(self):
@@ -28,15 +29,15 @@ class WaitlistForm(ui.Modal):
         self.add_item(self.server)
 
     async def callback(self, interaction: nextcord.Interaction):
-        uuid = await getuserid(self.ign.value)
-        if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message("Minecraft username does not exist", ephemeral=True); return
-        if self.region.value not in listRegions: await interaction.response.send_message("Selected Region does not exist", ephemeral=True); return
+        try:
+            uuid = await getuserid(self.ign.value)
+            if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message("Minecraft username does not exist", ephemeral=True); return
+            if self.region.value not in listRegions: await interaction.response.send_message("Selected Region does not exist", ephemeral=True); return
 
-        await sqlite.addUser(discordID=interaction.user.id, minecraftUsername=self.ign.value, minecraftUUID=uuid, tier="NONE", lastTest=0, server=self.server.value)
+            await sqlite.addUser(discordID=interaction.user.id, minecraftUsername=self.ign.value, minecraftUUID=uuid, tier="NONE", lastTest=0, server=self.server.value)
 
-        role = interaction.guild.get_role(listRegions[self.region.value]["role_ping"])
-        if role is None: await interaction.response.send_message("Bot not setup correctly, role for region not found.", ephemeral=True); return
-        await interaction.response.send_message(
-            f"Entered waitlist, <#{listRegions[self.region.value]["queue_channel"]}>",
-            ephemeral=True
-        )
+            role = interaction.guild.get_role(listRegions[self.region.value]["role_ping"])
+            if role is None: await interaction.response.send_message("Bot not setup correctly, role for region not found.", ephemeral=True); return
+            await interaction.response.send_message(content=f"Entered waitlist, <#{listRegions[self.region.value]["queue_channel"]}>", ephemeral=True)
+        except Exception as e:
+            await interaction.response.send_message(content=messages["error"])

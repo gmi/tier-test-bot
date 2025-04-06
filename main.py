@@ -192,9 +192,15 @@ async def next(
     user = queue.getNextTest(testerID=interaction.user.id, region=region)
     if user[0] == None: await interaction.response.send_message(content=user[1], ephemeral=True); return
 
-    usera: nextcord.User = await bot.fetch_user(user[0])
+    user: nextcord.User = await bot.fetch_user(user[0])
 
-    channelID = await interaction.guild.create_text_channel(category=interaction.guild.get_channel(listRegions[region]["ticket_catagory"]), name=f"eval-{usera.name}") # i dont like discord
+    channelID = await interaction.guild.create_text_channel(category=interaction.guild.get_channel(listRegions[region]["ticket_catagory"]), name=f"eval-{user.name}") # i dont like discord
+
+    messageData = await sqlite.getUserTicket(user.id)
+
+    ticketMessage = format.formatticketmessage(username=messageData[0], tier=messageData[1], server=messageData[2], uuid=messageData[3])
+
+    await channelID.send(content=f"<@{user.id}>", embed=nextcord.Embed.from_dict(ticketMessage))
 
     await interaction.response.send_message(f"Ticket has been created: <#{channelID.id}>")
 

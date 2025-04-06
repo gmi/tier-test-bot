@@ -11,6 +11,7 @@ def withConnection(func):
             return result
         except Exception as e:
             connection.rollback()
+            print(e)
             return False
         finally:
             connection.close()
@@ -41,3 +42,11 @@ async def addUser(cursor: sqlite3.Cursor, discordID: int, minecraftUsername: str
         server = excluded.server,
         region = excluded.region
     """, (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region))
+
+@withConnection
+async def getUserTicket(cursor: sqlite3.Cursor, discordID: int):
+    cursor.execute("""
+    SELECT minecraftUsername, tier, server, minecraftUUID FROM users WHERE discordID = ?
+    """, (discordID,))
+
+    return cursor.fetchone()

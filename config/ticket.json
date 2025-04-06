@@ -1,0 +1,21 @@
+{
+    "title": "Testing ticket",
+    "color": 16711680,
+    "fields": [
+      {
+        "name": "Username",
+        "value": "{{USERNAME}}"
+      },
+      {
+        "name": "Tier",
+        "value": "{{TIER}}"
+      },
+      {
+        "name": "Server",
+        "value": "{{SERVER}}"
+      }
+    ],
+    "thumbnail": {
+      "url": "{{THUMBNAIL_URL}}"
+    }
+}

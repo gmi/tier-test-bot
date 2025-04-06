@@ -6,9 +6,8 @@ import datetime
 
 
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from dotenv import load_dotenv
-import yaml
 
 from src.utils import mojang, format
 from src.tierlistQueue import TierlistQueue
@@ -55,7 +54,7 @@ async def setupBot():
     await bot.get_channel(channels["enterWaitlist"]).send(embed=nextcord.Embed.from_dict(format.enterwaitlistmessage), view=WaitlistButton())
     for region in listRegions:
         await bot.get_channel(listRegions[region]["queue_channel"]).purge(limit=10, check=is_me)
-        await bot.get_channel(listRegions[region]["queue_channel"]).send(embed=nextcord.Embed.from_dict(format.formatnoqueue(int(datetime.datetime.now().timestamp()))))
+        await bot.get_channel(listRegions[region]["queue_channel"]).send(embed=nextcord.Embed.from_dict(format.formatnoqueue()))
     
     
 @bot.event
@@ -63,9 +62,27 @@ async def on_ready():
     print(f"Tier Testing bot has logged online ✅")
     try:
         await setupBot()
+        updateQueue.start()
     except Exception as e:
         logging.exception("Failed bot startup sequence: ")
         sys.exit("Failed startup sequence")
+
+@tasks.loop(seconds=30)
+async def updateQueue():
+    queues = queue.getqueueraw()
+    for region, data in queues.items():
+        if not data["open"]:
+            continue
+
+        messageID = data["queueMessage"]
+        if messageID == None:
+            continue
+        channel = bot.get_channel(data["queueChannel"])
+        message: nextcord.Message = await channel.fetch_message(messageID)
+        messageUpdate = queue.makeQueueMessage(region=region)
+        await message.edit(embed=nextcord.Embed.from_dict(messageUpdate))
+
+
 
 @bot.slash_command(name="results", description="closes a ticket and gives a tier to a user") #TODO add database and ticket close
 async def results(
@@ -118,9 +135,51 @@ async def openqueue(
         choices=listRegionsText
     )
     ):
-    response = queue.addTester(region=region , userID=interaction.user.id)
+    try:
+        response = queue.addTester(region=region , userID=interaction.user.id)
 
-    await interaction.response.send_message(content=response, ephemeral=True)
+        if response[1] != "":
+            await bot.get_channel(listRegions[region]["queue_channel"]).purge(limit=10, check=is_me)
+            queueMessage: nextcord.Message = await bot.get_channel(listRegions[region]["queue_channel"]).send(content=f"<@&{listRegions[region]["role_ping"]}>", embed=nextcord.Embed.from_dict(response[1]), view=EnterQueueButton(queue=queue))
+            queue.addQueueMessageId(region=region, messageID=queueMessage.id)
+        await interaction.response.send_message(content=response[0], ephemeral=True)
+    except Exception as e:
+        logging.exception("Error in /openqueue command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="closequeue", description="closes queue for a specific region")
+async def closequeue(
+    interaction: nextcord.Interaction,
+    region: str = nextcord.SlashOption(
+        description="Enter region",
+        required=True,
+        choices=listRegionsText
+    )
+    ):
+    try:
+        response = queue.removeTester(userID=interaction.user.id, region=region)
+        if response == "Testing is closed": await interaction.response.send_message(content=response); return
+
+        message_text, embed_data, channel_id, message_id = response
+
+        queueChannel = bot.get_channel(channel_id)
+        queueMessage = await queueChannel.fetch_message(message_id)
+
+        if isinstance(embed_data, dict):
+            if message_text == "testing has closed":
+                await queueMessage.edit(embed=nextcord.Embed.from_dict(embed_data), view=None)
+            else:
+                await queueMessage.edit(embed=nextcord.Embed.from_dict(embed_data))
+        else:
+            logging.warning("Expected embed data to be a dict, got: %s", type(embed_data))
+            await interaction.response.send_message("Something went wrong with formatting the queue embed.", ephemeral=True)
+            return
+
+        await interaction.response.send_message(content=message_text, ephemeral=True)
+    except Exception as e:
+        logging.exception("Error in /closequeue command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+    
 
 if __name__ == "__main__":
     bot.run(os.getenv("TOKEN"))

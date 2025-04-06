@@ -1,5 +1,6 @@
 # used not to clutter main.py
 import json
+import datetime
 
 with open("config/resultmessage.json", "r") as file:
     resultmessage = json.load(file)
@@ -24,8 +25,8 @@ def formatresult(discordUsername, testerID, region, minecraftUsername, oldTier, 
     formatted_message = formatted_message.replace("{{THUMBNAIL_URL}}", f"https://render.crafty.gg/3d/bust/{uuid}")
     return json.loads(formatted_message)
 
-def formatnoqueue(timestamp):
-    formatted_message = json.dumps(noqueuemessage).replace("{{TIMESTAMP}}", f"<t:{timestamp}:f>")
+def formatnoqueue():
+    formatted_message = json.dumps(noqueuemessage).replace("{{TIMESTAMP}}", f"<t:{int(datetime.datetime.now().timestamp())}:f>")
     return json.loads(formatted_message)
 
 def formatqueue(capacity, queue, testerCapacity, testers):

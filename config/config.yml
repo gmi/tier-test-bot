@@ -9,6 +9,7 @@ bot:
         cooldown: 1440  # enter time in minutes (will only work if database is sqlite or mysql)
         queueLimit: 20  # max players in queue
         testerLimit: 5  # max number of testers per region
+        reloadQueue: 30 # time in seconds on how frequently you want to reload the queue, reccomended to stay above 15
 
     messages:           # messages to send
         noPermission: You do not have the permission to use this command.       # message to send if a user doesnt have permission to execute a command
@@ -17,6 +18,10 @@ bot:
         error: An error as occured                                              # message to send if the bot has an error
         addToQueue: You have been added to queue!                               # message to send when a user is added to a queue
         testerOpenQueue: "You have opened the queue!"                           # message to send when a tester opens a queue
+        alreadyInQueue: "You are already in the queue!"                         # message to send if a user is already in a queue
+        queueFull: "The queue is full!"                                         # message to send if the queue is full
+        notInQueue: "You are not in the queue!"                                 # message to send if a user is not in a queue when they try to leave
+        leaveQueue: "You have left the queue!"                                  # message to send when a user leaves the queue
 
     channels:   # the format is channel: channel_id
         results: 1357772378653986947        # post results

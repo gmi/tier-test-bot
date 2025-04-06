@@ -7,4 +7,4 @@ async def getuserid(username: str) -> str:
                 data = await response.json()
                 return str(data.get("id"))
             else:
-                return "8667ba71b85a4004af54457a9734eed7"
+                return "8667ba71b85a4004af54457a9734eed7" # default id of 'steve' (i think), very unlikely a person with the username steve will test <3, used a valid id so images will work

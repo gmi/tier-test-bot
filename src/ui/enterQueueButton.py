@@ -10,7 +10,18 @@ class EnterQueueButton(ui.View):
         self.queue: TierlistQueue = queue
 
 
-    @nextcord.ui.button(label="Enter Queue", style=nextcord.ButtonStyle.primary, custom_id="queueButton")
-    async def enter_waitlist(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        self.queue.addUser(interaction.message.id, interaction.user.id)
-        await interaction.response.send_message(messages["addToQueue"], ephemeral=True)
+    @nextcord.ui.button(label="Enter Queue", style=nextcord.ButtonStyle.primary, custom_id="joinQueue")
+    async def enter_queue(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        try:
+            response = self.queue.addUser(interaction.message.id, interaction.user.id)
+            await interaction.response.send_message(content=response, ephemeral=True)
+        except Exception as e:
+            await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+    @nextcord.ui.button(label="Exit Queue", style=nextcord.ButtonStyle.danger, custom_id="leaveQueue")
+    async def exit_queue(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        try:
+            response = self.queue.removeUser(interaction.message.id, interaction.user.id)
+            await interaction.response.send_message(content=response, ephemeral=True)
+        except Exception as e:
+            await interaction.response.send_message(content=messages["error"], ephemeral=True)

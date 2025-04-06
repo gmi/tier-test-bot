@@ -22,8 +22,10 @@ try:
     maxQueue = config["bot"]["options"]["queueLimit"]
     maxTester = config["bot"]["options"]["testerLimit"]
     cooldown = config["bot"]["options"]["cooldown"]
+    reloadQueue = config["bot"]["options"]["reloadQueue"]
 
     channels = config["bot"]["channels"]
+    
 except Exception as e:
     logging.exception(f"Setting up config failed:")
     sys.exit("Error: Failed to setup config")

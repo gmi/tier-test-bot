@@ -67,7 +67,7 @@ async def on_ready():
         logging.exception("Failed bot startup sequence: ")
         sys.exit("Failed startup sequence")
 
-@tasks.loop(seconds=30)
+@tasks.loop(seconds=reloadQueue)
 async def updateQueue():
     queues = queue.getqueueraw()
     for region, data in queues.items():

@@ -35,9 +35,35 @@ class TierlistQueue():
                 region = reg
                 break
 
-        if region:
-            if len(self.queue[region]["queue"]) < self.maxQueue:
-                self.queue[region]["queue"].append(userID)
+        if region == "":
+            return "region doesnt exist"
+        
+        if userID in self.queue[region]["queue"]:
+            return messages["alreadyInQueue"]
+        
+        if len(self.queue[region]["queue"]) >= self.maxQueue:
+            return messages["queueFull"]
+        
+        self.queue[region]["queue"].append(userID)
+        return messages["addToQueue"]
+
+    
+    def removeUser(self, messageID: int, userID: int):
+        region = ""
+        for reg, data in self.queue.items():
+            if data["queueMessage"] == messageID:
+                region = reg
+                break
+
+        if region == "":
+            return "region doesnt exist"
+        
+        if userID not in self.queue[region]["queue"]:
+            return messages["notInQueue"]
+        
+        self.queue[region]["queue"].remove(userID)
+        return messages["leaveQueue"]
+        
 
     def addTester(self, region: str, userID: int):
         if self.queue[region]["testers"] == []:

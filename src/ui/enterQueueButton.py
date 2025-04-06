@@ -1,7 +1,7 @@
 import nextcord
 from nextcord import ui
 
-from src.utils.loadConfig import *
+from src.utils.loadConfig import messages
 from src.tierlistQueue import TierlistQueue
 
 class EnterQueueButton(ui.View):

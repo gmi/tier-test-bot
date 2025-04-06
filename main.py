@@ -2,7 +2,7 @@ import os
 import sys
 import logging
 import time
-import datetime
+import asyncio
 
 
 import nextcord
@@ -13,6 +13,7 @@ from src.utils import mojang, format
 from src.tierlistQueue import TierlistQueue
 from src.ui.waitlistButton import WaitlistButton
 from src.ui.enterQueueButton import EnterQueueButton
+from src.ui.closeTicketButton import CloseTicketButton
 from src.database import sqlite
 from src.utils.loadConfig import *
 
@@ -195,14 +196,36 @@ async def next(
     user: nextcord.User = await bot.fetch_user(user[0])
 
     channelID = await interaction.guild.create_text_channel(category=interaction.guild.get_channel(listRegions[region]["ticket_catagory"]), name=f"eval-{user.name}") # i dont like discord
-
     messageData = await sqlite.getUserTicket(user.id)
-
     ticketMessage = format.formatticketmessage(username=messageData[0], tier=messageData[1], server=messageData[2], uuid=messageData[3])
 
     await channelID.send(content=f"<@{user.id}>", embed=nextcord.Embed.from_dict(ticketMessage))
-
     await interaction.response.send_message(f"Ticket has been created: <#{channelID.id}>")
+
+@bot.slash_command(name="closetest", description="closes the current test")
+async def closetest(
+    interaction: nextcord.Interaction,
+    ):
+    if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
+    if (interaction.channel.category.id not in listRegionCategories) or interaction.channel.id in listRegionQueueChannel: await interaction.response.send_message(content="You cannot use this command in this channel", ephemeral=True); return
+    
+    view = CloseTicketButton()
+
+    await interaction.response.send_message("Ticket will be closed in 10 seconds", view=view)
+    await asyncio.sleep(10)
+    if view.cancelled == False:
+        await interaction.channel.delete(reason="Ticket channel closed by command.")
+
+@bot.slash_command(name="forceclosetest", description="closes the current test with force")
+async def forceclosetest(
+    interaction: nextcord.Interaction,
+    ):
+    if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
+    if (interaction.channel.category.id not in listRegionCategories) or interaction.channel.id in listRegionQueueChannel: await interaction.response.send_message(content="You cannot use this command in this channel", ephemeral=True); return
+
+    await interaction.response.send_message("Ticket will be closed in 10 seconds, cannot cancel")
+    await asyncio.sleep(10)
+    await interaction.channel.delete(reason="Ticket channel closed by command.")
 
 
 if __name__ == "__main__":

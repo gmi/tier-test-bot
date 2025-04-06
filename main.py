@@ -16,7 +16,6 @@ from src.ui.enterQueueButton import EnterQueueButton
 from src.database import sqlite
 from src.utils.loadConfig import *
 
-
 try:
     os.makedirs("logs", exist_ok=True)
     os.makedirs("storage", exist_ok=True)
@@ -179,7 +178,26 @@ async def closequeue(
     except Exception as e:
         logging.exception("Error in /closequeue command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
-    
+
+@bot.slash_command(name="next", description="gets the next user you want to test")
+async def next(
+    interaction: nextcord.Interaction,
+    region: str = nextcord.SlashOption(
+        description="Enter region",
+        required=True,
+        choices=listRegionsText
+    )
+    ):
+    if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
+    user = queue.getNextTest(testerID=interaction.user.id, region=region)
+    if user[0] == None: await interaction.response.send_message(content=user[1], ephemeral=True); return
+
+    usera: nextcord.User = await bot.fetch_user(user[0])
+
+    channelID = await interaction.guild.create_text_channel(category=interaction.guild.get_channel(listRegions[region]["ticket_catagory"]), name=f"eval-{usera.name}") # i dont like discord
+
+    await interaction.response.send_message(f"Ticket has been created: <#{channelID.id}>")
+
 
 if __name__ == "__main__":
     bot.run(os.getenv("TOKEN"))

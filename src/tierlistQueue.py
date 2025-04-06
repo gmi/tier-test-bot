@@ -89,6 +89,12 @@ class TierlistQueue():
             return ("you have stopped testing", self.makeQueueMessage(region=region), self.queue[region]["queueChannel"], self.queue[region]["queueMessage"])
         
         return ("you are not testing this region", self.makeQueueMessage(region=region), self.queue[region]["queueChannel"], self.queue[region]["queueMessage"])
+    
+    def getNextTest(self, testerID: int, region: str):
+        if self.queue[region]["queue"] == []:
+            return (None, f"No users are in the queue for the {region} region")
+        user = self.queue[region]["queue"].pop(0)
+        return (user, None)
 
         
     def makeQueueMessage(self, region: str):

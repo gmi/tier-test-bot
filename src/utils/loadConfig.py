@@ -12,10 +12,12 @@ except Exception as e:
 try:
     listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
     listRegionsText: list[str] = [key for key in config["bot"]["regions"]]
-    listRegionCategories: list[str] = [region["ticket_catagory"] for region in config["bot"]["regions"].values()]
-    listRegionQueueChannel: list[str] = [region["queue_channel"] for region in config["bot"]["regions"].values()]
+    listRegionCategories: list[int] = [region["ticket_catagory"] for region in config["bot"]["regions"].values()]
+    listRegionQueueChannel: list[int] = [region["queue_channel"] for region in config["bot"]["regions"].values()]
+    listRegionRolePing: list[int] = [region["role_ping"] for region in config["bot"]["regions"].values()]
 
     testerRole: int = config["bot"]["roles"]["tester"]
+    listTierRoles: dict[str, int] = {tier: role_id for tier, role_id in config["bot"]["tiers"].items()}
 
     messages = config["bot"]["messages"]
 

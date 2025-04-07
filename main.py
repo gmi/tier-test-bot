@@ -110,10 +110,21 @@ async def results(
         result_embed_data = format.formatresult(discordUsername=user.name, testerID=interaction.user.id, region=region, minecraftUsername=username, oldTier=oldtier, newTier=newtier, uuid=uuid) # such bad practice <3
         embed = nextcord.Embed.from_dict(result_embed_data)
 
-
-
         await sqlite.addResult(discordID=user.id, tier=newtier)
 
+        member = interaction.guild.get_member(user.id)
+        region_roles_to_remove = [role for role in member.roles if role.id in listRegionRolePing]
+        if region_roles_to_remove:
+            await member.remove_roles(*region_roles_to_remove, reason="Region roles removed by /results command")
+
+        tier_roles_to_remove = [role for role in member.roles if role.id in listTierRoles.values()]
+        if tier_roles_to_remove:
+            await member.remove_roles(*tier_roles_to_remove, reason="Old tier roles removed by /results command")
+        
+        if newtier != "none" and newtier in listTierRoles:
+            new_tier_role = interaction.guild.get_role(listTierRoles[newtier])
+            if new_tier_role:
+                await member.add_roles(new_tier_role, reason="New tier role added by /results command")
 
         await bot.get_channel(channels["results"]).send(content=f"<@{user.id}>" ,embed=embed)
         await interaction.response.send_message(content=messages["resultMessageSent"], ephemeral=True)
@@ -258,8 +269,6 @@ async def updateusername(
     except Exception as e:
         logging.exception("Error in /forceclosetest command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
-    
-
 
 
 if __name__ == "__main__":

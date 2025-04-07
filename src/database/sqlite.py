@@ -80,6 +80,11 @@ async def userExists(cursor: sqlite3.Cursor, discordID: int) -> bool:
     return cursor.fetchone() is not None
 
 @withConnection
+async def getLastTest(cursor: sqlite3.Cursor, discordID: int):
+    cursor.execute("SELECT lastTest FROM users WHERE discordID = ?", (discordID,))
+    return cursor.fetchone()
+
+@withConnection
 async def updateUsername(cursor: sqlite3.Cursor, discordID: int, username: str, uuid: int) -> bool:
     cursor.execute("""
     UPDATE users

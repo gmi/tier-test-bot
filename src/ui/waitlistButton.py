@@ -1,9 +1,10 @@
 import nextcord
 from nextcord import ui
+import datetime
+
 from src.database import sqlite
 from src.utils.mojang import getuserid
-from src.utils.loadConfig import listRegions
-from src.utils.loadConfig import messages
+from src.utils.loadConfig import messages, listRegions, cooldown, listRegionRolePing
 
 class WaitlistButton(ui.View):
     def __init__(self):
@@ -36,8 +37,20 @@ class WaitlistForm(ui.Modal):
 
             await sqlite.addUser(discordID=interaction.user.id, minecraftUsername=self.ign.value, minecraftUUID=uuid, tier="none", lastTest=0, server=self.server.value, region=self.region.value)
 
+            lastTest = await sqlite.getLastTest(interaction.user.id)
+            lastTest = lastTest[0]
+
+            if int(datetime.datetime.now().timestamp()) - lastTest <= cooldown * 60: await interaction.response.send_message(content=f"You can test again at: <t:{lastTest + (cooldown*60)}:f>", ephemeral=True); return
+            
+            current_roles = interaction.user.roles
+            role_ids_to_remove = [role.id for role in current_roles if role.id in [r["role_ping"] for r in listRegions.values()]]
+            if role_ids_to_remove:
+                await interaction.user.remove_roles(*[interaction.guild.get_role(role_id) for role_id in role_ids_to_remove])
+            
             role = interaction.guild.get_role(listRegions[self.region.value]["role_ping"])
             if role is None: await interaction.response.send_message("Bot not setup correctly, role for region not found.", ephemeral=True); return
+            await interaction.user.add_roles(role)
+
             await interaction.response.send_message(content=f"Entered waitlist, <#{listRegions[self.region.value]["queue_channel"]}>", ephemeral=True)
         except Exception as e:
-            await interaction.response.send_message(content=messages["error"])
+            await interaction.response.send_message(content=messages["error"], ephemeral=True)

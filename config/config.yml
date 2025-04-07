@@ -9,7 +9,7 @@ bot:
         cooldown: 1440  # enter time in minutes (will only work if database is sqlite or mysql)
         queueLimit: 20  # max players in queue
         testerLimit: 5  # max number of testers per region
-        reloadQueue: 5 # time in seconds on how frequently you want to reload the queue, reccomended to stay above 15
+        reloadQueue: 30 # time in seconds on how frequently you want to reload the queue, reccomended to stay above 15
 
     messages:           # messages to send
         noPermission: You do not have the permission to use this command.       # message to send if a user doesnt have permission to execute a command
@@ -35,7 +35,7 @@ bot:
         
     tiers:      # the format is tier: role_id
         lt5: 1357746992226238514
-        ht5: 0
+        ht5: 1357746966733525242
         lt4: 0
         ht4: 0
         lt3: 0

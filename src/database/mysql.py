@@ -1,7 +1,7 @@
 import aiomysql
 import datetime
 from src.utils.loadConfig import mysqlInfo
-# Set your MySQL connection configuration here
+
 MYSQL_CONFIG = {
     'host': mysqlInfo["host"],
     'port': mysqlInfo["port"],
@@ -133,3 +133,12 @@ async def updateRestriction(cursor, discordID: int, restricted: bool) -> bool:
         discordID = %s    
     """, (restricted, discordID))
     return True
+
+@withConnection
+async def getUserInfo(cursor, discordID: int):
+    await cursor.execute("""
+    SELECT minecraftUsername, tier, lastTest, region, restricted, minecraftUUID 
+    FROM users WHERE discordID = %s
+    """, (discordID,))
+    return await cursor.fetchone()
+

@@ -10,10 +10,12 @@ except Exception as e:
     sys.exit("Error: Unable to load config file.")
 
 try:
+    catagories = config["bot"]["catagories"]
+    
     listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
     listHighTiers: list[str] = config["bot"]["highTiers"]
     listRegionsText: list[str] = [key for key in config["bot"]["regions"]]
-    listRegionCategories: list[int] = [region["ticket_catagory"] for region in config["bot"]["regions"].values()]
+    listRegionCategories: list[int] = [region["ticket_catagory"] for region in config["bot"]["regions"].values()]; listRegionCategories.append(catagories["highTests"])
     listRegionQueueChannel: list[int] = [region["queue_channel"] for region in config["bot"]["regions"].values()]
     listRegionRolePing: list[int] = [region["role_ping"] for region in config["bot"]["regions"].values()]
 
@@ -31,8 +33,6 @@ try:
     reloadQueue = config["bot"]["options"]["reloadQueue"]
 
     channels = config["bot"]["channels"]
-
-    catagories = config["bot"]["catagories"]
 
     mysqlInfo = config["database"]["mysql"]
     databaseType = config["database"]["type"]

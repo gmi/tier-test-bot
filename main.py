@@ -98,7 +98,6 @@ async def results(
     ):
     try:
         if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
-        if interaction.channel.category.id not in listRegionCategories: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
         
         exists = await databaseManager.userExists(user.id)
         if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
@@ -203,19 +202,31 @@ async def next(
     ):
     try:
         if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
+        if interaction.user.id not in queue.queue[region]["testers"]: await interaction.response.send_message("You are not testing this region!", ephemeral=True); return
         user = queue.getNextTest(testerID=interaction.user.id, region=region)
         if user[0] == None: await interaction.response.send_message(content=user[1], ephemeral=True); return
 
-        user: nextcord.User = await bot.fetch_user(user[0])
+        user: nextcord.Member = await interaction.guild.fetch_member(user[0])
 
         channelID = await interaction.guild.create_text_channel(category=interaction.guild.get_channel(listRegions[region]["ticket_catagory"]), name=f"eval-{user.name}") # i dont like discord
+        overwrite = nextcord.PermissionOverwrite()
+        overwrite.view_channel = True
+        overwrite.send_messages = True
+        await channelID.set_permissions(user, overwrite=overwrite)
+        
         messageData = await databaseManager.getUserTicket(user.id)
         ticketMessage = format.formatticketmessage(username=messageData[0], tier=messageData[1], server=messageData[2], uuid=messageData[3])
 
+        current_roles = user.roles
+        role_ids_to_remove = [role.id for role in current_roles if role.id in [r["role_ping"] for r in listRegions.values()]]
+        if role_ids_to_remove:
+            await interaction.user.remove_roles(*[interaction.guild.get_role(role_id) for role_id in role_ids_to_remove])
+            
         await channelID.send(content=f"<@{user.id}>", embed=nextcord.Embed.from_dict(ticketMessage))
-        await interaction.response.send_message(f"Ticket has been created: <#{channelID.id}>")
+        await interaction.response.send_message(f"Ticket has been created: <#{channelID.id}>", ephemeral=True)
     except Exception as e:
-        logging.exception("Error in /closequeue command:")
+        logging.exception("Error in /next command:")
+        print(e)
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
 
 @bot.slash_command(name="closetest", description="closes the current test")
@@ -341,6 +352,72 @@ async def unrestrict(
         logging.exception("Error in /unrestrict command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
 
+@bot.slash_command(name="info", description="gathers info on a user")
+async def unrestrict(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        exists = await databaseManager.userExists(user.id)
+        if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+
+        result = await databaseManager.getUserInfo(user.id)
+        username, tier, lastTest, region, restricted, uuid = result
+
+        await interaction.response.send_message(embed=nextcord.Embed.from_dict(format.formatinfo(discordName=str(user.name) ,username=username, tier=tier, lastTest=lastTest, region=region, restricted=restricted, uuid=uuid)))
+    except Exception as e: 
+        logging.exception("Error in /info command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="add", description="adds a user to the ticket")
+async def add(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        if interaction.channel.category.id not in listRegionCategories: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
+
+        channel = interaction.channel
+        overwrite = nextcord.PermissionOverwrite()
+        overwrite.view_channel = True
+        overwrite.send_messages = True
+        await channel.set_permissions(user, overwrite=overwrite)
+        await interaction.response.send_message(content=f"<@{user.id}> has been added to the ticket!")
+
+    except Exception as e: 
+        logging.exception("Error in /add command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="remove", description="removes a user from a ticket")
+async def remove(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        if interaction.channel.category.id not in listRegionCategories: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
+        
+        channel = interaction.channel
+        overwrite = nextcord.PermissionOverwrite()
+        overwrite.view_channel = False
+        overwrite.send_messages = False
+        await channel.set_permissions(user, overwrite=overwrite)
+        await interaction.response.send_message(content=f"<@{user.id}> has been removed from the ticket!")
+
+    except Exception as e: 
+        logging.exception("Error in /remove command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
 
 if __name__ == "__main__":
     bot.run(os.getenv("TOKEN"))

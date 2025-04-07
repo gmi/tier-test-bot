@@ -124,3 +124,11 @@ async def updateRestriction(cursor: sqlite3.Cursor, discordID: int, restricted: 
         discordID = ?    
     """, (restricted, discordID))
     return True
+
+@withConnection
+async def getUserInfo(cursor: sqlite3.Cursor, discordID: int):
+    cursor.execute("""
+    SELECT minecraftUsername, tier, lastTest, region, restricted, minecraftUUID 
+    FROM users WHERE discordID = ?
+    """, (discordID,))
+    return cursor.fetchone()

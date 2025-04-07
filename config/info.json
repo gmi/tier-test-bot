@@ -1,0 +1,29 @@
+{
+    "title": "{{DISCORDUSER}}'s info",
+    "color": 16711680,
+    "fields": [
+      {
+        "name": "Username",
+        "value": "{{USERNAME}}"
+      },
+      {
+        "name": "Tier",
+        "value": "{{TIER}}"
+      },
+      {
+        "name": "Last Test",
+        "value": "{{LAST}}"
+      },
+      {
+        "name": "Region",
+        "value": "{{REGION}}"
+      },
+      {
+        "name": "Restricted",
+        "value": "{{RESTRICTED}}"
+      }
+    ],
+    "thumbnail": {
+      "url": "{{THUMBNAIL_URL}}"
+    }
+  }

@@ -17,6 +17,9 @@ with open("config/queue.json", "r") as file:
 with open("config/ticket.json", "r") as file:
     ticketmessage = json.load(file)
 
+with open("config/info.json", "r") as file:
+    infomessage = json.load(file)
+
 def formatresult(discordUsername, testerID, region, minecraftUsername, oldTier, newTier, uuid):
     formatted_message = json.dumps(resultmessage).replace("{{PLAYER}}", discordUsername)
     formatted_message = formatted_message.replace("{{TESTER}}", f"<@{testerID}>")
@@ -48,5 +51,22 @@ def formatticketmessage(username, tier, server, uuid):
     formatted_message = json.dumps(ticketmessage).replace("{{SERVER}}", server)
     formatted_message = formatted_message.replace("{{USERNAME}}", username)
     formatted_message = formatted_message.replace("{{TIER}}", tier)
+    formatted_message = formatted_message.replace("{{THUMBNAIL_URL}}", f"https://render.crafty.gg/3d/bust/{uuid}")
+    return json.loads(formatted_message)
+
+def formatinfo(discordName, username, tier, lastTest, region, restricted, uuid):
+    formatted_message = json.dumps(infomessage).replace("{{USERNAME}}", username)
+    formatted_message = formatted_message.replace("{{TIER}}", tier)
+    if lastTest == 0:
+        formatted_message = formatted_message.replace("{{LAST}}", f"Not tested before")
+    else:
+        formatted_message = formatted_message.replace("{{LAST}}", f"<t:{lastTest}:f>")
+    formatted_message = formatted_message.replace("{{REGION}}", region)
+    if restricted == 1:
+        formatted_message = formatted_message.replace("{{RESTRICTED}}", "true")
+    else:
+        formatted_message = formatted_message.replace("{{RESTRICTED}}", "false")
+
+    formatted_message = formatted_message.replace("{{DISCORDUSER}}", discordName)
     formatted_message = formatted_message.replace("{{THUMBNAIL_URL}}", f"https://render.crafty.gg/3d/bust/{uuid}")
     return json.loads(formatted_message)

@@ -44,3 +44,6 @@ async def isRestriced(discordID: int) -> bool:
 
 async def updateRestriction(discordID: int, restricted: bool) -> bool:
     return await db.updateRestriction(discordID=discordID, restricted=restricted)
+
+async def getUserInfo(discordID: int):
+    return await db.getUserInfo(discordID=discordID)

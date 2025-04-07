@@ -7,7 +7,7 @@
 bot:
     options:
         cooldown: 1440  # enter time in minutes (will only work if database is sqlite or mysql)
-        queueLimit: 20  # max players in queue
+        queueLimit: 20  # max players in queue, dont go above something like 40 or the bot cant send a message
         testerLimit: 5  # max number of testers per region
         reloadQueue: 30 # time in seconds on how frequently you want to reload the queue, reccomended to stay above 15
 
@@ -24,18 +24,18 @@ bot:
         leaveQueue: "You have left the queue!"                                  # message to send when a user leaves the queue
 
     channels:   # the format is channel: channel_id
-        results: 1357772378653986947        # post results
-        enterWaitlist: 1357841251734393033  # where users join a channel for a queue
+        results: 0        # post results
+        enterWaitlist: 0  # where users join a channel for a queue
 
     catagories:
-        highTests: 1358745049562742963    # Catagory where users with a high tiers ticket will go
+        highTests: 0    # Catagory where users with a high tiers ticket will go
 
     roles:      # the format is role: role_id
-        tester: 1357747672706187384
+        tester: 0
 
     tiers:      # the format is tier: role_id
-        lt5: 1357746992226238514
-        ht5: 1357746966733525242
+        lt5: 0
+        ht5: 0
         lt4: 0
         ht4: 0
         lt3: 0
@@ -52,15 +52,15 @@ bot:
         - lt2
         - ht3
 
-    regions:    
+    regions:    # you can always add more regions
         EU: 
-            queue_channel: 1357801394110730320      # channel for queue to be posted in
-            ticket_catagory: 1357801305669636178    # catagory for tests to go in
-            role_ping: 1358002082782908437    # role to ping when queue is open
+            queue_channel: 0      # channel for queue to be posted in
+            ticket_catagory: 0    # catagory for tests to go in
+            role_ping: 0    # role to ping when queue is open
         NA:    
-            queue_channel: 1357801413274505296
-            ticket_catagory: 1357801320773324981
-            role_ping: 1358002115146023062
+            queue_channel: 0
+            ticket_catagory: 0
+            role_ping: 0
 
 database:
     # options are "mysql", "sqlite", only use mysql if you know what you are doing, if you switch, data will not transfer, you will need to write your own script to transfer the data
@@ -72,3 +72,5 @@ database:
         user: root
         password: root
         database: tiers # must be created before starting bot
+
+# UwU

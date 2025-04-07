@@ -5,6 +5,7 @@ import datetime
 from src.database import databaseManager
 from src.utils.mojang import getuserid
 from src.utils.loadConfig import messages, listRegions, cooldown, listHighTiers, catagories
+from src.utils import format
 
 class WaitlistButton(ui.View):
     def __init__(self):
@@ -26,13 +27,16 @@ class WaitlistButton(ui.View):
             current_tier = current_tier[0]
             if(current_tier) in listHighTiers:
                 categoryChannel = interaction.guild.get_channel(catagories["highTests"])
-                existingChannel = nextcord.utils.get(
-                    interaction.guild.text_channels, 
-                    name=f"highTest-{interaction.user.name}"
-                )
-                if existingChannel: await interaction.response.send_message(content=f"You already have a test open: <#{existingChannel.id}>", ephemeral=True); return
 
                 channelID = await interaction.guild.create_text_channel(name=f"highTest-{interaction.user.name}", category=categoryChannel)
+                overwrite = nextcord.PermissionOverwrite()
+                overwrite.view_channel = True
+                overwrite.send_messages = True
+                await channelID.set_permissions(interaction.user, overwrite=overwrite)
+
+                messageData = await databaseManager.getUserTicket(interaction.user.id)
+                ticketMessage = format.formathighticketmessage(username=messageData[0], tier=messageData[1], uuid=messageData[3])
+                await channelID.send(content=f"<@{interaction.user.id}>" ,embed=nextcord.Embed.from_dict(ticketMessage))
                 await interaction.response.send_message(content=f"A high tier ticket has been created: <#{channelID.id}>", ephemeral=True)
                 return
 

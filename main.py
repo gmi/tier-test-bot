@@ -361,7 +361,6 @@ async def unrestrict(
     )
     ):
     try:
-        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
         exists = await databaseManager.userExists(user.id)
         if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
 

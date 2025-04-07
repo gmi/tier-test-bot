@@ -18,7 +18,7 @@ with open("config/ticket.json", "r") as file:
     ticketmessage = json.load(file)
 
 with open("config/highticket.json", "r") as file:
-    ticketmessage = json.load(file)
+    highticketmessage = json.load(file)
 
 with open("config/info.json", "r") as file:
     infomessage = json.load(file)
@@ -58,7 +58,7 @@ def formatticketmessage(username, tier, server, uuid):
     return json.loads(formatted_message)
 
 def formathighticketmessage(username, tier, uuid):
-    formatted_message = json.dumps(ticketmessage).replace("{{USERNAME}}", username)
+    formatted_message = json.dumps(highticketmessage).replace("{{USERNAME}}", username)
     formatted_message = formatted_message.replace("{{TIER}}", tier)
     formatted_message = formatted_message.replace("{{THUMBNAIL_URL}}", f"https://render.crafty.gg/3d/bust/{uuid}")
     return json.loads(formatted_message)

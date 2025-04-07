@@ -32,7 +32,7 @@ bot:
 
     roles:      # the format is role: role_id
         tester: 1357747672706187384
-        
+
     tiers:      # the format is tier: role_id
         lt5: 1357746992226238514
         ht5: 1357746966733525242
@@ -63,11 +63,8 @@ bot:
             role_ping: 1358002115146023062
 
 database:
-    # options are "mysql", "sqlite", only use mysql if you know what you are doing
+    # options are "mysql", "sqlite", only use mysql if you know what you are doing, if you switch, data will not transfer, you will need to write your own script to transfer the data
     type: sqlite 
-
-    sqlite:
-        filename: database.db
 
     mysql:      # only use this if you know what you are doing
         host: localhost

@@ -2,7 +2,7 @@ import nextcord
 from nextcord import ui
 import datetime
 
-from src.database import sqlite
+from src.database import databaseManager
 from src.utils.mojang import getuserid
 from src.utils.loadConfig import messages, listRegions, cooldown, listHighTiers, catagories
 
@@ -13,24 +13,28 @@ class WaitlistButton(ui.View):
 
     @nextcord.ui.button(label="Enter Waitlist", style=nextcord.ButtonStyle.primary, custom_id="waitlistButton")
     async def enter_waitlist(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        lastTest = await sqlite.getLastTest(interaction.user.id)
-        lastTest = lastTest[0]
-
-        if int(datetime.datetime.now().timestamp()) - lastTest <= cooldown * 60: await interaction.response.send_message(content=f"You can test again at: <t:{lastTest + (cooldown*60)}:f>", ephemeral=True); return
         
-        current_tier = await sqlite.getTier(interaction.user.id)
-        current_tier = current_tier[0]
-        if(current_tier) in listHighTiers:
-            categoryChannel = interaction.guild.get_channel(catagories["highTests"])
-            existingChannel = nextcord.utils.get(
-                interaction.guild.text_channels, 
-                name=f"highTest-{interaction.user.name}"
-            )
-            if existingChannel: await interaction.response.send_message(content=f"You already have a test open: <#{existingChannel.id}>", ephemeral=True); return
+        exists = await databaseManager.userExists(interaction.user.id)
+        if exists:
+            isrestricted = await databaseManager.isRestriced(interaction.user.id)
+            if isrestricted: await interaction.response.send_message(content="You are currently restricted", ephemeral=True); return
+            lastTest = await databaseManager.getLastTest(interaction.user.id)
+            lastTest = lastTest[0]
+            if int(datetime.datetime.now().timestamp()) - lastTest <= cooldown * 60: await interaction.response.send_message(content=f"You can test again at: <t:{lastTest + (cooldown*60)}:f>", ephemeral=True); return
+        
+            current_tier = await databaseManager.getTier(interaction.user.id)
+            current_tier = current_tier[0]
+            if(current_tier) in listHighTiers:
+                categoryChannel = interaction.guild.get_channel(catagories["highTests"])
+                existingChannel = nextcord.utils.get(
+                    interaction.guild.text_channels, 
+                    name=f"highTest-{interaction.user.name}"
+                )
+                if existingChannel: await interaction.response.send_message(content=f"You already have a test open: <#{existingChannel.id}>", ephemeral=True); return
 
-            channelID = await interaction.guild.create_text_channel(name=f"highTest-{interaction.user.name}", category=categoryChannel)
-            await interaction.response.send_message(content=f"A high tier ticket has been created: <#{channelID.id}>", ephemeral=True)
-            return
+                channelID = await interaction.guild.create_text_channel(name=f"highTest-{interaction.user.name}", category=categoryChannel)
+                await interaction.response.send_message(content=f"A high tier ticket has been created: <#{channelID.id}>", ephemeral=True)
+                return
 
         modal = WaitlistForm()
         await interaction.response.send_modal(modal)
@@ -54,7 +58,7 @@ class WaitlistForm(ui.Modal):
             if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message("Minecraft username does not exist", ephemeral=True); return
             if self.region.value not in listRegions: await interaction.response.send_message("Selected Region does not exist", ephemeral=True); return
 
-            await sqlite.addUser(discordID=interaction.user.id, minecraftUsername=self.ign.value, minecraftUUID=uuid, tier="none", lastTest=0, server=self.server.value, region=self.region.value)
+            await databaseManager.addUser(discordID=interaction.user.id, minecraftUsername=self.ign.value, minecraftUUID=uuid, tier="none", lastTest=0, server=self.server.value, region=self.region.value)
 
             
 

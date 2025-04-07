@@ -1,5 +1,4 @@
 import sqlite3
-import asyncio
 import datetime
 
 def withConnection(func):
@@ -28,21 +27,22 @@ async def createTables(cursor: sqlite3.Cursor) -> bool:
         tier TEXT NOT NULL,
         lastTest INTEGER NOT NULL,
         server TEXT NOT NULL,
-        region TEXT NOT NULL
+        region TEXT NOT NULL,
+        restricted BOOLEAN NOT NULL
     )""")
     return True
 
 @withConnection
 async def addUser(cursor: sqlite3.Cursor, discordID: int, minecraftUsername: str, minecraftUUID: str, tier: str, lastTest: int, server: str, region: str) -> bool:
     cursor.execute("""
-    INSERT INTO users (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region, restricted)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(discordID) DO UPDATE SET
         minecraftUsername = excluded.minecraftUsername,
         minecraftUUID = excluded.minecraftUUID,
         server = excluded.server,
         region = excluded.region
-    """, (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region))
+    """, (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region, False))
     return True
 
 @withConnection
@@ -90,6 +90,12 @@ async def getTier(cursor: sqlite3.Cursor, discordID: int):
     return cursor.fetchone()
 
 @withConnection
+async def isRestricted(cursor: sqlite3.Cursor, discordID: int) -> bool:
+    cursor.execute("SELECT restricted FROM users WHERE discordID = ?", (discordID,))
+    result = cursor.fetchone()
+    return result[0] if result else False
+
+@withConnection
 async def updateUsername(cursor: sqlite3.Cursor, discordID: int, username: str, uuid: int) -> bool:
     cursor.execute("""
     UPDATE users
@@ -107,4 +113,14 @@ async def updateTier(cursor: sqlite3.Cursor, discordID: int, tier: str) -> bool:
     WHERE
         discordID = ?    
     """, (tier, discordID))
+    return True
+
+@withConnection
+async def updateRestriction(cursor: sqlite3.Cursor, discordID: int, restricted: bool) -> bool:
+    cursor.execute("""
+    UPDATE users
+        SET restricted = ?
+    WHERE
+        discordID = ?    
+    """, (restricted, discordID))
     return True

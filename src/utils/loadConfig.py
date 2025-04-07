@@ -18,6 +18,7 @@ try:
     listRegionRolePing: list[int] = [region["role_ping"] for region in config["bot"]["regions"].values()]
 
     testerRole: int = config["bot"]["roles"]["tester"]
+
     listTierRoles: dict[str, int] = {tier: role_id for tier, role_id in config["bot"]["tiers"].items()}
 
     messages = config["bot"]["messages"]
@@ -32,6 +33,9 @@ try:
     channels = config["bot"]["channels"]
 
     catagories = config["bot"]["catagories"]
+
+    mysqlInfo = config["database"]["mysql"]
+    databaseType = config["database"]["type"]
     
 except Exception as e:
     logging.exception(f"Setting up config failed:")

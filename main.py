@@ -13,7 +13,7 @@ from src.tierlistQueue import TierlistQueue
 from src.ui.waitlistButton import WaitlistButton
 from src.ui.enterQueueButton import EnterQueueButton
 from src.ui.closeTicketButton import CloseTicketButton
-from src.database import sqlite
+from src.database import databaseManager
 from src.utils.loadConfig import *
 
 try:
@@ -48,7 +48,7 @@ def is_me(m):
     return m.author == bot.user
 
 async def setupBot():
-    await sqlite.createTables()
+    await databaseManager.createTables()
     await bot.get_channel(channels["enterWaitlist"]).purge(limit=10, check=is_me)
     await bot.get_channel(channels["enterWaitlist"]).send(embed=nextcord.Embed.from_dict(format.enterwaitlistmessage), view=WaitlistButton())
     for region in listRegions:
@@ -83,7 +83,7 @@ async def updateQueue():
 
 
 
-@bot.slash_command(name="results", description="closes a ticket and gives a tier to a user") #TODO add database and ticket close
+@bot.slash_command(name="results", description="closes a ticket and gives a tier to a user")
 async def results(
     interaction: nextcord.Interaction,
     user: nextcord.User = nextcord.SlashOption(
@@ -100,17 +100,23 @@ async def results(
         if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
         if interaction.channel.category.id not in listRegionCategories: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
         
-        exists = await sqlite.userExists(user.id)
+        exists = await databaseManager.userExists(user.id)
         if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+        
+        isrestricted = await databaseManager.isRestriced(interaction.user.id)
+        if isrestricted: await interaction.response.send_message(content="User is currently restricted", ephemeral=True); return
 
-        username, oldtier, region = await sqlite.getResultInfo(user.id)
+        restricted = await databaseManager.isRestriced(user.id)
+        if restricted: await interaction.response.send_message("User is restricted", ephemeral=True); return
+
+        username, oldtier, region = await databaseManager.getResultInfo(user.id)
 
         uuid = await mojang.getuserid(username=username)
 
         result_embed_data = format.formatresult(discordUsername=user.name, testerID=interaction.user.id, region=region, minecraftUsername=username, oldTier=oldtier, newTier=newtier, uuid=uuid) # such bad practice <3
         embed = nextcord.Embed.from_dict(result_embed_data)
 
-        await sqlite.addResult(discordID=user.id, tier=newtier)
+        await databaseManager.addResult(discordID=user.id, tier=newtier)
 
         member = interaction.guild.get_member(user.id)
         region_roles_to_remove = [role for role in member.roles if role.id in listRegionRolePing]
@@ -203,7 +209,7 @@ async def next(
         user: nextcord.User = await bot.fetch_user(user[0])
 
         channelID = await interaction.guild.create_text_channel(category=interaction.guild.get_channel(listRegions[region]["ticket_catagory"]), name=f"eval-{user.name}") # i dont like discord
-        messageData = await sqlite.getUserTicket(user.id)
+        messageData = await databaseManager.getUserTicket(user.id)
         ticketMessage = format.formatticketmessage(username=messageData[0], tier=messageData[1], server=messageData[2], uuid=messageData[3])
 
         await channelID.send(content=f"<@{user.id}>", embed=nextcord.Embed.from_dict(ticketMessage))
@@ -259,13 +265,13 @@ async def updateusername(
     ):
     try:
         if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
-        exists = await sqlite.userExists(user.id)
+        exists = await databaseManager.userExists(user.id)
         if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
 
         uuid = await mojang.getuserid(username=username)
         if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message(content="Minecraft user does not exist"); return
-        await sqlite.updateUsername(discordID=user.id, username=username, uuid=uuid)
-        await interaction.response.send_message(content="Username sucessfully updated")
+        await databaseManager.updateUsername(discordID=user.id, username=username, uuid=uuid)
+        await interaction.response.send_message(content="Username sucessfully updated", ephemeral=True)
     except Exception as e:
         logging.exception("Error in /updateusername command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
@@ -286,13 +292,53 @@ async def updatetier(
     ):
     try:
         if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
-        exists = await sqlite.userExists(user.id)
+        exists = await databaseManager.userExists(user.id)
         if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
 
-        await sqlite.updateTier(discordID=user.id, tier=tier)
-        await interaction.response.send_message(content="Tier sucessfully updated in database, you will need to change their roles")
+        await databaseManager.updateTier(discordID=user.id, tier=tier)
+        await interaction.response.send_message(content="Tier sucessfully updated in database, you will need to change their roles", ephemeral=True)
     except Exception as e: 
-        logging.exception("Error in /forceclosetest command:")
+        logging.exception("Error in /updatetier command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="restrict", description="restrict a user")
+async def restrict(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        exists = await databaseManager.userExists(user.id)
+        if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+
+        await databaseManager.updateRestriction(discordID=user.id, restricted=True)
+
+        await interaction.response.send_message(content="User has been restricted", ephemeral=True)
+    except Exception as e: 
+        logging.exception("Error in /restrict command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="unrestrict", description="unrestrict a user")
+async def unrestrict(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        exists = await databaseManager.userExists(user.id)
+        if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+
+        await databaseManager.updateRestriction(discordID=user.id, restricted=False)
+
+        await interaction.response.send_message(content="User has been unrestricted", ephemeral=True)
+    except Exception as e: 
+        logging.exception("Error in /unrestrict command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
 
 

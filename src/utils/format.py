@@ -28,7 +28,7 @@ def formatresult(discordUsername, testerID, region, minecraftUsername, oldTier, 
     return json.loads(formatted_message)
 
 def formatnoqueue():
-    formatted_message = json.dumps(noqueuemessage).replace("{{TIMESTAMP}}", f"<t:{int(datetime.datetime.now().timestamp())}:f>")
+    formatted_message = json.dumps(noqueuemessage).replace("{{TIMESTAMP}}", f"<t:{int(datetime.datetime.now().timestamp())}:f>") # in seconds
     return json.loads(formatted_message)
 
 def formatqueue(capacity, queue, testerCapacity, testers):

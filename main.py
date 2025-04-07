@@ -87,10 +87,6 @@ async def updateQueue():
 @bot.slash_command(name="results", description="closes a ticket and gives a tier to a user") #TODO add database and ticket close
 async def results(
     interaction: nextcord.Interaction,
-    username: str = nextcord.SlashOption(
-        description="Enter their username",
-        required=True,
-    ),
     user: nextcord.User = nextcord.SlashOption(
         description="Enter their discord account",
         required=True,
@@ -99,27 +95,27 @@ async def results(
         description="Enter their new tier",
         required=True,
         choices=listTiers
-    ),
-    oldtier: str = nextcord.SlashOption(
-        description="Enter their old tier",
-        required=True,
-        choices=listTiers
-    ),
-    region: str = nextcord.SlashOption(
-        description="Enter their region",
-        required=True,
-        choices=listRegionsText
     )
     ):
     try:
         if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(messages["noPermission"], ephemeral=True); return
-        if interaction.channel.category.id not in listRegions: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
+        if interaction.channel.category.id not in listRegionCategories: await interaction.response.send_message(messages["notTicketCatagory"], ephemeral=True); return
+        
+        exists = await sqlite.userExists(user.id)
+        if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+
+        username, oldtier, region = await sqlite.getResultInfo(user.id)
 
         uuid = await mojang.getuserid(username=username)
 
         result_embed_data = format.formatresult(discordUsername=user.name, testerID=interaction.user.id, region=region, minecraftUsername=username, oldTier=oldtier, newTier=newtier, uuid=uuid) # such bad practice <3
         embed = nextcord.Embed.from_dict(result_embed_data)
-        
+
+
+
+        await sqlite.addResult(discordID=user.id, tier=newtier)
+
+
         await bot.get_channel(channels["results"]).send(content=f"<@{user.id}>" ,embed=embed)
         await interaction.response.send_message(content=messages["resultMessageSent"], ephemeral=True)
     except Exception as e:

@@ -1,5 +1,6 @@
 import sqlite3
 import asyncio
+import datetime
 
 def withConnection(func):
     async def wrapper(*args, **kwargs):
@@ -50,3 +51,29 @@ async def getUserTicket(cursor: sqlite3.Cursor, discordID: int):
     """, (discordID,))
 
     return cursor.fetchone()
+
+
+@withConnection
+async def getResultInfo(cursor: sqlite3.Cursor, discordID: int):
+    cursor.execute("""
+    SELECT minecraftUsername, tier, region FROM users WHERE discordID = ?
+    """, (discordID,))
+
+    return cursor.fetchone()
+
+
+@withConnection
+async def addResult(cursor: sqlite3.Cursor, discordID: int, tier: str):
+    lastTest = int(datetime.datetime.now().timestamp())
+    cursor.execute("""
+    UPDATE users
+        SET tier = ?, lastTest = ?
+    WHERE
+        discordID = ?    
+    """, (tier, lastTest, discordID))
+    return True
+
+@withConnection
+async def userExists(cursor: sqlite3.Cursor, discordID: int) -> bool:
+    cursor.execute("SELECT 1 FROM users WHERE discordID = ? LIMIT 1", (discordID,))
+    return cursor.fetchone() is not None

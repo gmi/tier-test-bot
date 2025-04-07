@@ -85,6 +85,11 @@ async def getLastTest(cursor: sqlite3.Cursor, discordID: int):
     return cursor.fetchone()
 
 @withConnection
+async def getTier(cursor: sqlite3.Cursor, discordID: int):
+    cursor.execute("SELECT tier FROM users WHERE discordID = ?", (discordID,))
+    return cursor.fetchone()
+
+@withConnection
 async def updateUsername(cursor: sqlite3.Cursor, discordID: int, username: str, uuid: int) -> bool:
     cursor.execute("""
     UPDATE users
@@ -92,4 +97,14 @@ async def updateUsername(cursor: sqlite3.Cursor, discordID: int, username: str, 
     WHERE
         discordID = ?    
     """, (username, uuid, discordID))
+    return True
+
+@withConnection
+async def updateTier(cursor: sqlite3.Cursor, discordID: int, tier: str) -> bool:
+    cursor.execute("""
+    UPDATE users
+        SET tier = ?
+    WHERE
+        discordID = ?    
+    """, (tier, discordID))
     return True

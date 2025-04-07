@@ -28,7 +28,7 @@ bot:
         enterWaitlist: 1357841251734393033  # where users join a channel for a queue
 
     catagories:
-        highTests: 32123    # Catagory where users with a high tiers ticket will go
+        highTests: 1358745049562742963    # Catagory where users with a high tiers ticket will go
 
     roles:      # the format is role: role_id
         tester: 1357747672706187384
@@ -45,7 +45,7 @@ bot:
         lt1: 0
         ht1: 0
 
-    high tiers:
+    highTiers:  # tiers you want to create a seperate ticket for
         - ht1
         - lt1
         - ht2

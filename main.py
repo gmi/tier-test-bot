@@ -267,6 +267,31 @@ async def updateusername(
         await sqlite.updateUsername(discordID=user.id, username=username, uuid=uuid)
         await interaction.response.send_message(content="Username sucessfully updated")
     except Exception as e:
+        logging.exception("Error in /updateusername command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+
+@bot.slash_command(name="updatetier", description="changes a tier of a user in database")
+async def updatetier(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    ),
+    tier: str = nextcord.SlashOption(
+        description="Enter their tier",
+        required=True,
+        choices=listTiers
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        exists = await sqlite.userExists(user.id)
+        if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+
+        await sqlite.updateTier(discordID=user.id, tier=tier)
+        await interaction.response.send_message(content="Tier sucessfully updated in database, you will need to change their roles")
+    except Exception as e: 
         logging.exception("Error in /forceclosetest command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
 

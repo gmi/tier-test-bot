@@ -11,6 +11,7 @@ except Exception as e:
 
 try:
     listTiers: list[str] = [key for key in config["bot"]["tiers"]]; listTiers.append("none")
+    listHighTiers: list[str] = config["bot"]["highTiers"]
     listRegionsText: list[str] = [key for key in config["bot"]["regions"]]
     listRegionCategories: list[int] = [region["ticket_catagory"] for region in config["bot"]["regions"].values()]
     listRegionQueueChannel: list[int] = [region["queue_channel"] for region in config["bot"]["regions"].values()]
@@ -29,6 +30,8 @@ try:
     reloadQueue = config["bot"]["options"]["reloadQueue"]
 
     channels = config["bot"]["channels"]
+
+    catagories = config["bot"]["catagories"]
     
 except Exception as e:
     logging.exception(f"Setting up config failed:")

@@ -6,7 +6,9 @@ A discord bot for minecraft tierlists that can be self hosted
 
 ## Installation
 
-- video guide - [https://youtube.com/TODO](https://youtube.com/TODO)
+- video guide - [https://www.youtube.com/watch?v=Jq6AtmHbAe8](https://www.youtube.com/watch?v=Jq6AtmHbAe8)
+
+- support - [https://discord.gg/esdbRyqk9W](https://discord.gg/esdbRyqk9W)
 
 - create a discord bot at [discord dev portal](https://discord.com/developers/applications)
 

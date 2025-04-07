@@ -419,5 +419,25 @@ async def remove(
         logging.exception("Error in /remove command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
 
+@bot.slash_command(name="passeval", description="passes eval")
+async def passeval(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+    description="Enter their discord account",
+    required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        if interaction.channel.category.id not in listRegionCategories or interaction.channel.id in listRegionQueueChannel: await interaction.response.send_message(content="You cannot use this command in this channel", ephemeral=True); return
+        
+        channel = interaction.channel
+        await channel.edit(name=f"passeval-{user.name}")
+        await interaction.response.send_message(content=f"<@{user.id}> has passed eval!")
+
+    except Exception as e: 
+        logging.exception("Error in /passeval command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
 if __name__ == "__main__":
     bot.run(os.getenv("TOKEN"))

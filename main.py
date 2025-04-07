@@ -4,7 +4,6 @@ import logging
 import time
 import asyncio
 
-
 import nextcord
 from nextcord.ext import commands, tasks
 from dotenv import load_dotenv
@@ -234,6 +233,33 @@ async def forceclosetest(
     except Exception as e:
         logging.exception("Error in /forceclosetest command:")
         await interaction.response.send_message(content=messages["error"], ephemeral=True)
+
+@bot.slash_command(name="updateusername", description="changes a username of a user")
+async def updateusername(
+    interaction: nextcord.Interaction,
+    user: nextcord.User = nextcord.SlashOption(
+        description="Enter their discord account",
+        required=True,
+    ),
+    username: str = nextcord.SlashOption(
+        description="Enter their minecraft username",
+        required=True,
+    )
+    ):
+    try:
+        if testerRole not in [role.id for role in interaction.user.roles]: await interaction.response.send_message(content=messages["noPermission"], ephemeral=True); return
+        exists = await sqlite.userExists(user.id)
+        if not exists: await interaction.response.send_message("User does not exist in the database", ephemeral=True); return
+
+        uuid = await mojang.getuserid(username=username)
+        if uuid == "8667ba71b85a4004af54457a9734eed7": await interaction.response.send_message(content="Minecraft user does not exist"); return
+        await sqlite.updateUsername(discordID=user.id, username=username, uuid=uuid)
+        await interaction.response.send_message(content="Username sucessfully updated")
+    except Exception as e:
+        logging.exception("Error in /forceclosetest command:")
+        await interaction.response.send_message(content=messages["error"], ephemeral=True)
+    
+
 
 
 if __name__ == "__main__":

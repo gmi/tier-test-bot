@@ -19,7 +19,7 @@ def withConnection(func):
     return wrapper
 
 @withConnection
-async def createTables(cursor: sqlite3.Cursor):
+async def createTables(cursor: sqlite3.Cursor) -> bool:
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         discordID INTEGER PRIMARY KEY,
@@ -33,7 +33,7 @@ async def createTables(cursor: sqlite3.Cursor):
     return True
 
 @withConnection
-async def addUser(cursor: sqlite3.Cursor, discordID: int, minecraftUsername: str, minecraftUUID: str, tier: str, lastTest: int, server: str, region: str):
+async def addUser(cursor: sqlite3.Cursor, discordID: int, minecraftUsername: str, minecraftUUID: str, tier: str, lastTest: int, server: str, region: str) -> bool:
     cursor.execute("""
     INSERT INTO users (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -43,6 +43,7 @@ async def addUser(cursor: sqlite3.Cursor, discordID: int, minecraftUsername: str
         server = excluded.server,
         region = excluded.region
     """, (discordID, minecraftUsername, minecraftUUID, tier, lastTest, server, region))
+    return True
 
 @withConnection
 async def getUserTicket(cursor: sqlite3.Cursor, discordID: int):
@@ -63,7 +64,7 @@ async def getResultInfo(cursor: sqlite3.Cursor, discordID: int):
 
 
 @withConnection
-async def addResult(cursor: sqlite3.Cursor, discordID: int, tier: str):
+async def addResult(cursor: sqlite3.Cursor, discordID: int, tier: str) -> bool:
     lastTest = int(datetime.datetime.now().timestamp())
     cursor.execute("""
     UPDATE users
@@ -77,3 +78,13 @@ async def addResult(cursor: sqlite3.Cursor, discordID: int, tier: str):
 async def userExists(cursor: sqlite3.Cursor, discordID: int) -> bool:
     cursor.execute("SELECT 1 FROM users WHERE discordID = ? LIMIT 1", (discordID,))
     return cursor.fetchone() is not None
+
+@withConnection
+async def updateUsername(cursor: sqlite3.Cursor, discordID: int, username: str, uuid: int) -> bool:
+    cursor.execute("""
+    UPDATE users
+        SET minecraftUsername = ?, minecraftUUID = ?
+    WHERE
+        discordID = ?    
+    """, (username, uuid, discordID))
+    return True
